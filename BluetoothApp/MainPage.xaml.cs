@@ -57,6 +57,12 @@ namespace BluetoothApp
         {
             // Find batteries 
             var deviceInfo = await DeviceInformation.FindAllAsync(Battery.GetDeviceSelector());
+            //Paired bluetooth devices
+            DeviceInformationCollection PairedBluetoothDevices =
+                   await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromPairingState(true));
+            //Connected bluetooth devices
+            DeviceInformationCollection ConnectedBluetoothDevices =
+                   await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromConnectionStatus(BluetoothConnectionStatus.Connected));
             foreach (DeviceInformation device in deviceInfo)
             {
                 try
