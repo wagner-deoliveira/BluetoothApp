@@ -5,7 +5,6 @@ using Windows.UI.Xaml.Media;
 using Windows.Devices.Enumeration;
 using Windows.Devices.Power;
 using Windows.UI.Core;
-using System.Net.Sockets;
 using Windows.Devices.Bluetooth;
 
 namespace BluetoothApp
