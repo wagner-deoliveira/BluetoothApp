@@ -58,19 +58,19 @@ namespace BluetoothApp
             // Find batteries 
             var deviceInfo = await DeviceInformation.FindAllAsync(Battery.GetDeviceSelector());
             //Paired bluetooth devices
-            DeviceInformationCollection PairedBluetoothDevices =
+            DeviceInformationCollection pairedBluetoothDevices =
                    await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromPairingState(true));
             //Connected bluetooth devices
-            DeviceInformationCollection ConnectedBluetoothDevices =
+            DeviceInformationCollection connectedBluetoothDevices =
                    await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromConnectionStatus(BluetoothConnectionStatus.Connected));
-            foreach (DeviceInformation device in ConnectedBluetoothDevices)
+            foreach (DeviceInformation device in connectedBluetoothDevices)
             {
                 try
                 {
                     string name = device.Name;
                     // Create battery object
                     Guid batteryLevel = GattCharacteristicUuids.BatteryLevel;
-                    var battery = await batteryLevel;
+                    var battery = await Battery.FromIdAsync(device.Id);
 
                     // Get report
                     var report = battery.GetReport();
