@@ -6,6 +6,7 @@ using Windows.Devices.Enumeration;
 using Windows.Devices.Power;
 using Windows.UI.Core;
 using Windows.Devices.Bluetooth;
+using Windows.Devices.Bluetooth.GenericAttributeProfile;
 
 namespace BluetoothApp
 {
@@ -62,15 +63,19 @@ namespace BluetoothApp
             //Connected bluetooth devices
             DeviceInformationCollection ConnectedBluetoothDevices =
                    await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromConnectionStatus(BluetoothConnectionStatus.Connected));
-            foreach (DeviceInformation device in deviceInfo)
+            foreach (DeviceInformation device in ConnectedBluetoothDevices)
             {
                 try
                 {
+                    string name = device.Name;
                     // Create battery object
-                    var battery = await Battery.FromIdAsync(device.Id);
+                    Guid batteryLevel = GattCharacteristicUuids.BatteryLevel;
+                    var battery = await batteryLevel;
 
                     // Get report
                     var report = battery.GetReport();
+
+                    
 
                     // Update UI
                     AddReportUI(BatteryReportPanel, report, battery.DeviceId);
@@ -167,7 +172,5 @@ namespace BluetoothApp
             }
         }
     }
-
-    // My BT USB adapter
     
 }
