@@ -209,6 +209,4 @@ namespace BluetoothApp
         public string PnpDeviceID { get; private set; }
         public string Description { get; private set; }
     }
-    }
-    
 }
