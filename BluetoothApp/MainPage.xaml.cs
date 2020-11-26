@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
+using System.Management;
+using Windows.Devices.Bluetooth;
+using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Devices.Enumeration;
 using Windows.Devices.Power;
 using Windows.UI.Core;
-using Windows.Devices.Bluetooth;
-using Windows.Devices.Bluetooth.GenericAttributeProfile;
-using System.Management;
+using Windows.UI.Text;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 
 namespace BluetoothApp
 {
     public sealed partial class MainPage : Page
     {
-        bool reportRequested = false;
+        bool reportRequested;
         public MainPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             Battery.AggregateBattery.ReportUpdated += AggregateBattery_ReportUpdated;
         }
 
@@ -59,7 +60,7 @@ namespace BluetoothApp
         {
             // Find batteries 
             var deviceInfo = await DeviceInformation.FindAllAsync(Battery.GetDeviceSelector());
-            var usbDevices = GetUSBDevices();
+            //var usbDevices = GetUSBDevices();
             //Paired bluetooth devices
             DeviceInformationCollection pairedBluetoothDevices =
                    await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromPairingState(true));
@@ -79,7 +80,7 @@ namespace BluetoothApp
                     // Get report
                     var report = battery.GetReport();
 
-                    
+
 
                     // Update UI
                     AddReportUI(BatteryReportPanel, report, battery.DeviceId);
@@ -97,14 +98,14 @@ namespace BluetoothApp
             txt1.Margin = new Thickness(0, 15, 0, 0);
             txt1.TextWrapping = TextWrapping.WrapWholeWords;
 
-            TextBlock txt2 = new TextBlock { Text = "Battery status: " + report.Status.ToString() };
-            txt2.FontStyle = Windows.UI.Text.FontStyle.Italic;
+            TextBlock txt2 = new TextBlock { Text = "Battery status: " + report.Status };
+            txt2.FontStyle = FontStyle.Italic;
             txt2.Margin = new Thickness(0, 0, 0, 15);
 
-            TextBlock txt3 = new TextBlock { Text = "Charge rate (mW): " + report.ChargeRateInMilliwatts.ToString() };
-            TextBlock txt4 = new TextBlock { Text = "Design energy capacity (mWh): " + report.DesignCapacityInMilliwattHours.ToString() };
-            TextBlock txt5 = new TextBlock { Text = "Fully-charged energy capacity (mWh): " + report.FullChargeCapacityInMilliwattHours.ToString() };
-            TextBlock txt6 = new TextBlock { Text = "Remaining energy capacity (mWh): " + report.RemainingCapacityInMilliwattHours.ToString() };
+            TextBlock txt3 = new TextBlock { Text = "Charge rate (mW): " + report.ChargeRateInMilliwatts };
+            TextBlock txt4 = new TextBlock { Text = "Design energy capacity (mWh): " + report.DesignCapacityInMilliwattHours };
+            TextBlock txt5 = new TextBlock { Text = "Fully-charged energy capacity (mWh): " + report.FullChargeCapacityInMilliwattHours };
+            TextBlock txt6 = new TextBlock { Text = "Remaining energy capacity (mWh): " + report.RemainingCapacityInMilliwattHours };
 
             // Create energy capacity progress bar & labels
             TextBlock pbLabel = new TextBlock { Text = "Percent remaining energy capacity" };
@@ -175,38 +176,43 @@ namespace BluetoothApp
                 });
             }
         }
+
+        async private void GetUSBDevicesAction()
+        {
+            var usbDevices = GetUSBDevices();
+        }
+        
         static List<USBDeviceInfo> GetUSBDevices()
         {
             List<USBDeviceInfo> devices = new List<USBDeviceInfo>();
-
-            ManagementObjectCollection collection;
-            using (var searcher = new ManagementObjectSearcher(@"Select * From Win32_PnPEntity"))
+            ManagementObjectCollection collection; 
+            using (var searcher = new ManagementObjectSearcher(@"Select * From Win32_PnPEntity")) 
                 collection = searcher.Get();      
 
             foreach (var device in collection)
-            {
+            { 
                 devices.Add(new USBDeviceInfo(
-                    (string)device.GetPropertyValue("DeviceID"),
-                    (string)device.GetPropertyValue("PNPDeviceID"),
-                    (string)device.GetPropertyValue("Description")
-                ));
+                        (string)device.GetPropertyValue("DeviceID"), 
+                        (string)device.GetPropertyValue("PNPDeviceID"), 
+                        (string)device.GetPropertyValue("Description")));
             }
-
-            collection.Dispose();
+            
+            collection.Dispose(); 
             return devices;
         }
-    }
 
-    class USBDeviceInfo
-    {
-        public USBDeviceInfo(string deviceID, string pnpDeviceID, string description)
-        {
-            this.DeviceID = deviceID;
-            this.PnpDeviceID = pnpDeviceID;
-            this.Description = description;
+        class USBDeviceInfo
+        { 
+            public USBDeviceInfo(string deviceID, string pnpDeviceID, string description)
+            {
+                DeviceID = deviceID;
+                PnpDeviceID = pnpDeviceID;
+                Description = description;
+            }
+
+            private string DeviceID { get; set; }
+            private string PnpDeviceID { get; set; }
+            private string Description { get; set; }
         }
-        public string DeviceID { get; private set; }
-        public string PnpDeviceID { get; private set; }
-        public string Description { get; private set; }
     }
 }
