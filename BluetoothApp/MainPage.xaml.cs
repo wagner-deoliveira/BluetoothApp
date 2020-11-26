@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
@@ -7,6 +8,7 @@ using Windows.Devices.Power;
 using Windows.UI.Core;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
+using System.Management;
 
 namespace BluetoothApp
 {
@@ -57,6 +59,7 @@ namespace BluetoothApp
         {
             // Find batteries 
             var deviceInfo = await DeviceInformation.FindAllAsync(Battery.GetDeviceSelector());
+            var usbDevices = GetUSBDevices();
             //Paired bluetooth devices
             DeviceInformationCollection pairedBluetoothDevices =
                    await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromPairingState(true));
@@ -71,7 +74,7 @@ namespace BluetoothApp
                     // Create battery object
                     //Guid batteryLevel = GattCharacteristicUuids.BatteryLevel;
                     var battery = await Battery.FromIdAsync(device.Id);
-                    var batteryLevel = GattDeviceService.FromIdAsync(device.Id);
+                    var batteryLevel = await GattDeviceService.FromIdAsync(device.Id);
 
                     // Get report
                     var report = battery.GetReport();
@@ -172,6 +175,40 @@ namespace BluetoothApp
                 });
             }
         }
+        static List<USBDeviceInfo> GetUSBDevices()
+        {
+            List<USBDeviceInfo> devices = new List<USBDeviceInfo>();
+
+            ManagementObjectCollection collection;
+            using (var searcher = new ManagementObjectSearcher(@"Select * From Win32_PnPEntity"))
+                collection = searcher.Get();      
+
+            foreach (var device in collection)
+            {
+                devices.Add(new USBDeviceInfo(
+                    (string)device.GetPropertyValue("DeviceID"),
+                    (string)device.GetPropertyValue("PNPDeviceID"),
+                    (string)device.GetPropertyValue("Description")
+                ));
+            }
+
+            collection.Dispose();
+            return devices;
+        }
+    }
+
+    class USBDeviceInfo
+    {
+        public USBDeviceInfo(string deviceID, string pnpDeviceID, string description)
+        {
+            this.DeviceID = deviceID;
+            this.PnpDeviceID = pnpDeviceID;
+            this.Description = description;
+        }
+        public string DeviceID { get; private set; }
+        public string PnpDeviceID { get; private set; }
+        public string Description { get; private set; }
+    }
     }
     
 }
