@@ -11,6 +11,7 @@
         <StackPanel VerticalAlignment="Center" Margin="50,50,0,10" >
             <RadioButton x:Name="AggregateButton" Content="Aggregate results" GroupName="Type" IsChecked="True" />
             <RadioButton x:Name="IndividualButton" Content="Individual results" GroupName="Type" IsChecked="False" />
+            <RadioButton x:Name="BluetoothButton" Content="Bluetooth results" GroupName="Type" IsChecked="False" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Button x:Name="GetBatteryReportButton" 

@@ -34,10 +34,15 @@ namespace BluetoothApp
                 // Request aggregate battery report
                 RequestAggregateBatteryReport();
             }
-            else
+            else if(IndividualButton.IsChecked == true)
             {
                 // Request individual battery report
                 RequestIndividualBatteryReports();
+            }
+            else
+            {
+                // Request bluetooth baterry report
+                RequestIndividualBluetoothBatteryReports();
             }
 
             // Note request
@@ -60,27 +65,16 @@ namespace BluetoothApp
         {
             // Find batteries 
             var deviceInfo = await DeviceInformation.FindAllAsync(Battery.GetDeviceSelector());
-            //var usbDevices = GetUSBDevices();
-            //Paired bluetooth devices
-            DeviceInformationCollection pairedBluetoothDevices =
-                   await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromPairingState(true));
-            //Connected bluetooth devices
-            DeviceInformationCollection connectedBluetoothDevices =
-                   await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromConnectionStatus(BluetoothConnectionStatus.Connected));
+            
             foreach (DeviceInformation device in deviceInfo)
             {
                 try
                 {
                     string name = device.Name;
-                    // Create battery object
-                    //Guid batteryLevel = GattCharacteristicUuids.BatteryLevel;
                     var battery = await Battery.FromIdAsync(device.Id);
-                    var batteryLevel = await GattDeviceService.FromIdAsync(device.Id);
-
+                   
                     // Get report
                     var report = battery.GetReport();
-
-
 
                     // Update UI
                     AddReportUI(BatteryReportPanel, report, battery.DeviceId);
@@ -89,6 +83,37 @@ namespace BluetoothApp
             }
         }
 
+
+        async private void RequestIndividualBluetoothBatteryReports()
+        {
+            // Find batteries 
+            //var usbDevices = GetUSBDevices();
+            //Paired bluetooth devices
+            //DeviceInformationCollection pairedBluetoothDevices =
+            //       await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromPairingState(true));
+            //Connected bluetooth devices
+            DeviceInformationCollection connectedBluetoothDevices =
+                   await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromConnectionStatus(BluetoothConnectionStatus.Connected));
+            foreach (DeviceInformation device in connectedBluetoothDevices)
+            {
+                try
+                {
+                    string name = device.Name;
+                    // Create battery object
+                    //Guid batteryLevel = GattCharacteristicUuids.BatteryLevel;
+                    var battery = await Battery.FromIdAsync(device.Id);
+                    GattDeviceService gattDeviceService = await GattDeviceService.FromIdAsync(device.Id);
+                    var batteryLevel = gattDeviceService;
+
+                    // Get report
+                    var report = battery.GetReport();
+
+                    // Update UI
+                    AddReportUI(BatteryReportPanel, report, battery.DeviceId);
+                }
+                catch { /* Add error handling, as applicable */ }
+            }
+        }
 
         private void AddReportUI(StackPanel sp, BatteryReport report, string DeviceID)
         {
@@ -177,11 +202,6 @@ namespace BluetoothApp
             }
         }
 
-        async private void GetUSBDevicesAction()
-        {
-            var usbDevices = GetUSBDevices();
-        }
-        
         static List<USBDeviceInfo> GetUSBDevices()
         {
             List<USBDeviceInfo> devices = new List<USBDeviceInfo>();
