@@ -106,10 +106,12 @@ namespace BluetoothApp
                     var batteryLevel = gattDeviceService;
 
                     // Get report
-                    var report = battery.GetReport();
+                    var report = await batteryLevel.GetCharacteristicsAsync();
+                    var results = report.Characteristics.ToString();
+
 
                     // Update UI
-                    AddReportUI(BatteryReportPanel, report, battery.DeviceId);
+                    AddReportUIBluetooth(BatteryReportPanel, results, battery.DeviceId);
                 }
                 catch { /* Add error handling, as applicable */ }
             }
@@ -193,13 +195,80 @@ namespace BluetoothApp
                         // Request aggregate battery report
                         RequestAggregateBatteryReport();
                     }
-                    else
+                     else if(IndividualButton.IsChecked == true)
                     {
                         // Request individual battery report
                         RequestIndividualBatteryReports();
                     }
+                    else
+                    {
+                        // Request bluetooth baterry report
+                        RequestIndividualBluetoothBatteryReports();
+                    }
                 });
             }
+        }
+
+        private void AddReportUIBluetooth(StackPanel sp, String report, string DeviceID)
+        {
+            // Create battery report UI
+            TextBlock txt1 = new TextBlock { Text = "Device ID: " + DeviceID };
+            txt1.FontSize = 15;
+            txt1.Margin = new Thickness(0, 15, 0, 0);
+            txt1.TextWrapping = TextWrapping.WrapWholeWords;
+
+            TextBlock txt2 = new TextBlock { Text = "Battery status: " + report };
+            txt2.FontStyle = FontStyle.Italic;
+            txt2.Margin = new Thickness(0, 0, 0, 15);
+
+            TextBlock txt3 = new TextBlock { Text = "Charge rate (mW): " + report };
+            //TextBlock txt4 = new TextBlock { Text = "Design energy capacity (mWh): " + report.DesignCapacityInMilliwattHours };
+            //TextBlock txt5 = new TextBlock { Text = "Fully-charged energy capacity (mWh): " + report.FullChargeCapacityInMilliwattHours };
+            //TextBlock txt6 = new TextBlock { Text = "Remaining energy capacity (mWh): " + report.RemainingCapacityInMilliwattHours };
+
+            // Create energy capacity progress bar & labels
+            TextBlock pbLabel = new TextBlock { Text = "Percent remaining energy capacity" };
+            pbLabel.Margin = new Thickness(0, 10, 0, 5);
+            pbLabel.FontFamily = new FontFamily("Segoe UI");
+            pbLabel.FontSize = 11;
+
+            ProgressBar pb = new ProgressBar();
+            pb.Margin = new Thickness(0, 5, 0, 0);
+            pb.Width = 200;
+            pb.Height = 10;
+            pb.IsIndeterminate = false;
+            pb.HorizontalAlignment = HorizontalAlignment.Left;
+
+            TextBlock pbPercent = new TextBlock();
+            pbPercent.Margin = new Thickness(0, 5, 0, 10);
+            pbPercent.FontFamily = new FontFamily("Segoe UI");
+            pbLabel.FontSize = 11;
+
+            // Disable progress bar if values are null
+            if (report == null)
+             
+            {
+                pb.IsEnabled = false;
+                pbPercent.Text = "N/A";
+            }
+            else
+            {
+                pb.IsEnabled = true;
+                pb.Maximum = Convert.ToDouble(report);
+                pb.Value = Convert.ToDouble(report);
+                pbPercent.Text = ((pb.Value / pb.Maximum) * 100).ToString("F2") + "%";
+            }
+
+            // Add controls to stackpanel
+            sp.Children.Add(txt1);
+            sp.Children.Add(txt2);
+            sp.Children.Add(txt3);
+            //sp.Children.Add(txt4);
+            //sp.Children.Add(txt5);
+            //sp.Children.Add(txt6);
+            sp.Children.Add(pbLabel);
+            sp.Children.Add(pb);
+            sp.Children.Add(pbPercent);
         }
 
         static List<USBDeviceInfo> GetUSBDevices()
